@@ -94,14 +94,14 @@ elif [ ! -f "$ssh_key_file" ]; then
 fi
 
 echo "Options:"
-echo "Stroom URL: $stroom_url"
-echo "Stroom API key file: $stroom_api_key_file"
-echo "Repo directory: $repo_dir"
-echo "Git username: $git_user"
-echo "Git email: $git_email"
-echo "Git URL: $git_url"
-echo "Git branch: $git_branch"
-echo "SSH key file: $ssh_key_file"
+echo " * Stroom URL: $stroom_url"
+echo " * Stroom API key file: $stroom_api_key_file"
+echo " * Repo directory: $repo_dir"
+echo " * Git username: $git_user"
+echo " * Git email: $git_email"
+echo " * Git URL: $git_url"
+echo " * Git branch: $git_branch"
+echo " * SSH key file: $ssh_key_file"
 
 # Delete the repo directory if it exists
 if [ -d "$repo_dir" ]; then
