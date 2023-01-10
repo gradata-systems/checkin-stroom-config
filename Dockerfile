@@ -1,8 +1,12 @@
 FROM alpine:3.17.1
 
-RUN apk update
-RUN apk upgrade
-RUN apk add --no-cache bash openssh-client curl git
+RUN apk update && \
+    apk upgrade && \
+    apk add --no-cache \
+        bash \
+        openssh-client \
+        curl \
+        git
 
 RUN adduser --uid 1000 --disabled-password stroom
 
