@@ -1,0 +1,51 @@
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: checkin-stroom-config
+  namespace: default
+spec:
+  schedule: "* * * * *" # https://kubernetes.io/docs/concepts/workloads/controllers/cron-jobs/#schedule-syntax
+  concurrencyPolicy: Forbid
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          restartPolicy: OnFailure
+          containers:
+            - name: checkin
+              image: gradata-systems/checkin-stroom-config
+              imagePullPolicy: IfNotPresent
+              env:
+                - name: STROOM_URL
+                  value: https://stroom.example.com
+                - name: STROOM_API_KEY_FILE
+                  value: /stroom/secrets/api-key
+                - name: STROOM_REPO_DIR
+                  value: /stroom/repo
+                - name: STROOM_GIT_USER
+                  value: "" # Git username
+                - name: STROOM_GIT_EMAIL
+                  value: "" # Git user email address
+                - name: STROOM_GIT_URL
+                  value: git@github.com:example-org/checkin-stroom-config.git # Git repository
+                - name: STROOM_GIT_BRANCH
+                  value: master # Target branch
+                - name: STROOM_SSH_KEY_FILE
+                  value: /stroom/secrets/ssh-key
+              volumeMounts:
+                - mountPath: /stroom/secrets
+                  name: secrets
+                  readOnly: true
+              resources:
+                requests:
+                  cpu: 100m
+                  memory: 1Gi
+          volumes:
+            - name: secrets
+              secret:
+                secretName: stroom-config # Opaque secret with keys: `api-key`, `ssh-key`
+                defaultMode: 0400
+          securityContext:
+            runAsUser: 1000
+            runAsGroup: 1000
+            runAsNonRoot: true
