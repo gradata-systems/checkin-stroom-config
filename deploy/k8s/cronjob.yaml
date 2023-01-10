@@ -27,7 +27,7 @@ spec:
                 - name: STROOM_GIT_EMAIL
                   value: "" # Git user email address
                 - name: STROOM_GIT_URL
-                  value: git@github.com:example-org/checkin-stroom-config.git # Git repository
+                  value: git@github.com:example-org/stroom-config.git # Git repository
                 - name: STROOM_GIT_BRANCH
                   value: master # Target branch
                 - name: STROOM_SSH_KEY_FILE
