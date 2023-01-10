@@ -141,17 +141,22 @@ fi
 
 # Dump Stroom config
 echo "Downloading Stroom config..."
+download_url="$stroom_url/api/export/v1"
 out_file='/tmp/stroom-config.zip'
-curl -k -X GET \
+status_code=$(curl -k -X GET \
+  --silent \
+  --output "$out_file" \
+  --write-out %{http_code} \
   -H "Authorization:Bearer $api_key" \
-  "$stroom_url/api/export/v1" --silent --output "$out_file"
+  "$download_url")
 
-echo "Unzipping $out_file..."
-if [ ! $(unzip -o -q "$out_file" -d .) ]; then
-  echo "Bad zip file: $out_file"
+if [ $status_code -ne 200 ]; then
+  echo "Failed to download Stroom config from $download_url. Status code: $status_code"
   exit 1
 fi
 
+echo "Unzipping $out_file..."
+unzip -o -q "$out_file" -d .
 rm -f "$out_file"
 
 # Commit new files, changes and deletions
