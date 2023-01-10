@@ -147,7 +147,7 @@ curl -k -X GET \
   "$stroom_url/api/export/v1" --silent --output "$out_file"
 
 echo "Unzipping $out_file..."
-if [ ! unzip -o -q "$out_file" -d . ]; then
+if [ ! $(unzip -o -q "$out_file" -d .) ]; then
   echo "Bad zip file: $out_file"
   exit 1
 fi
