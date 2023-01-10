@@ -13,8 +13,8 @@ spec:
           restartPolicy: OnFailure
           containers:
             - name: checkin
-              image: gradata-systems/checkin-stroom-config
-              imagePullPolicy: IfNotPresent
+              image: ghcr.io/gradata-systems/checkin-stroom-config:master
+              imagePullPolicy: Always
               env:
                 - name: STROOM_URL
                   value: https://stroom.example.com
