@@ -153,7 +153,7 @@ rm -f "$out_file"
 # Commit new files, changes and deletions
 echo "Committing changes..."
 git add --all
-git commit --message "Automatic check-in at $(date -Iseconds)"
-git push --set-upstream origin "$git_branch"
+git commit --message "Automatic check-in at $(date -Iseconds)" && \
+  git push --set-upstream origin "$git_branch"
 
 exit 0
