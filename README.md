@@ -7,7 +7,7 @@ This script queries the Stroom API to download all configuration. Any changes ar
 ## Running as a one-time job
 
 ```shell
-./scripts/checkin-stroom-config.sh
+./scripts/sync-stroom-config.sh
 ```
 
 ## Running on Kubernetes as a `CronJob`

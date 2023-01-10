@@ -1,7 +1,7 @@
 apiVersion: batch/v1
 kind: CronJob
 metadata:
-  name: checkin-stroom-config
+  name: stroom-config-sync
   namespace: default
 spec:
   schedule: "* * * * *" # https://kubernetes.io/docs/concepts/workloads/controllers/cron-jobs/#schedule-syntax
@@ -12,8 +12,8 @@ spec:
         spec:
           restartPolicy: OnFailure
           containers:
-            - name: checkin
-              image: ghcr.io/gradata-systems/checkin-stroom-config:master
+            - name: sync-config
+              image: ghcr.io/gradata-systems/stroom-config-sync:master
               imagePullPolicy: Always
               env:
                 - name: STROOM_URL

@@ -9,8 +9,8 @@ RUN adduser --uid 1000 --disabled-password stroom
 ADD scripts /stroom
 RUN chown -R stroom:stroom /stroom
 RUN chmod -R 700 /stroom
-RUN chmod 500 /stroom/checkin-stroom-config.sh
+RUN chmod 500 /stroom/sync-stroom-config.sh
 
 USER stroom
 
-CMD [ "/stroom/checkin-stroom-config.sh" ]
+CMD [ "/stroom/sync-stroom-config.sh" ]

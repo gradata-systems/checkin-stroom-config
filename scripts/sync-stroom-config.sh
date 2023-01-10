@@ -11,7 +11,7 @@ git_branch="${STROOM_GIT_BRANCH:-master}"
 ssh_key_file="${STROOM_SSH_KEY_FILE:-}"
 
 usage() {
-  echo "Usage: checkin-stroom-config   --stroom-url https://stroom.example.com
+  echo "Usage: sync-stroom-config   --stroom-url https://stroom.example.com
                                --stroom-api-key-file ~/api_key
                                --git-user 'Git User'
                                --git-email 'git-user@github.com'
@@ -23,7 +23,7 @@ usage() {
 
 short_opts='s:a:r:u:e:g:b:k:'
 long_opts='stroom-url:,stroom-api-key-file:,repo-dir:,git-user:,git-email:,git-url:,git-branch:,ssh-key-file:'
-parsed_arguments=$(getopt -a -n checkin-stroom-config -o "$short_opts" --long "$long_opts" -- "$@")
+parsed_arguments=$(getopt -a -n sync-stroom-config -o "$short_opts" --long "$long_opts" -- "$@")
 eval set -- "$parsed_arguments"
 while :
 do
@@ -162,7 +162,7 @@ rm -f "$out_file"
 # Commit new files, changes and deletions
 echo "Committing changes..."
 git add --all
-git commit --message "Automatic check-in at $(date -Iseconds)" && \
+git commit --message "Automatic in at $(date -Iseconds)" && \
   git push --set-upstream origin "$git_branch"
 
 exit 0
