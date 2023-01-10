@@ -112,7 +112,7 @@ fi
 mkdir -p "$repo_dir"
 
 # Add the SSH key to ssh-agent
-eval `ssh-agent -s`
+eval "$(ssh-agent -s)"
 ssh-add "$ssh_key_file"
 git_server_hostname=$(echo "$git_url" | sed -E 's/^git@(.+):.+$/\1/g')
 mkdir -p ~/.ssh
@@ -121,7 +121,7 @@ ssh-keyscan "$git_server_hostname" >> ~/.ssh/known_hosts
 # Store the StroomAPI key
 api_key=$(cat "$stroom_api_key_file")
 
-cd "$repo_dir"
+cd "$repo_dir" || exit
 
 # Pull the git repo
 git init --quiet
@@ -132,12 +132,11 @@ git config user.email "$git_email"
 # Checkout the branch if it exists, else create a local branch
 echo "Checking out branch $git_branch from repository $git_url..."
 branch_exists=$(git ls-remote --heads "$git_url" "$git_branch" | wc -l)
-if [ $branch_exists -ne 1 ]; then
+if [ "$branch_exists" -ne 1 ]; then
   echo "Branch $git_branch does not exist on remote. Creating..."
   git checkout -b "$git_branch"
 else
-  git pull --rebase origin "$git_branch"
-  if [ $? -ne 0 ]; then
+  if ! git pull --rebase origin "$git_branch"; then
     echo "Failed to check out repository $git_url"
     exit 1
   fi
@@ -150,11 +149,11 @@ out_file='/tmp/stroom-config.zip'
 status_code=$(curl -k -X GET \
   --silent \
   --output "$out_file" \
-  --write-out %{http_code} \
+  --write-out %\{http_code\} \
   -H "Authorization:Bearer $api_key" \
   "$download_url")
 
-if [ $status_code -ne 200 ]; then
+if [ "$status_code" -ne 200 ]; then
   echo "Failed to download Stroom config from $download_url. Status code: $status_code"
   exit 1
 fi
@@ -166,10 +165,8 @@ rm -f "$out_file"
 # Commit new files, changes and deletions
 echo "Committing changes..."
 git add --all
-git commit --message "Automatic check-in at $(date -Iseconds)"
-if [ $? -eq 0 ]; then
-  git push --set-upstream origin "$git_branch"
-  if [ $? -eq 0 ]; then
+if git commit --message "Automatic check-in at $(date -Iseconds)"; then
+  if git push --set-upstream origin "$git_branch"; then
     echo "Push successful"
     exit 0
   else
