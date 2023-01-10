@@ -137,6 +137,10 @@ if [ $branch_exists -ne 1 ]; then
   git checkout -b "$git_branch"
 else
   git pull --rebase origin "$git_branch"
+  if [ $? -ne 0 ]; then
+    echo "Failed to check out repository $git_url"
+    exit 1
+  fi
 fi
 
 # Dump Stroom config
@@ -162,9 +166,16 @@ rm -f "$out_file"
 # Commit new files, changes and deletions
 echo "Committing changes..."
 git add --all
-if [[ git commit --message "Automatic check-in at $(date -Iseconds)" ] && [ git push --set-upstream origin "$git_branch" ]]; then
-  echo "Push successful"
-  exit 0
-else
-  exit 1
+git commit --message "Automatic check-in at $(date -Iseconds)"
+if [ $? -eq 0 ]; then
+  git push --set-upstream origin "$git_branch"
+  if [ $? -eq 0 ]; then
+    echo "Push successful"
+    exit 0
+  else
+    echo "Failed to push to remote"
+    exit 1
+  fi
 fi
+
+exit 0
