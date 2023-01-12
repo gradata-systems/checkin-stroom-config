@@ -7,6 +7,7 @@ The configuration is compared to the contents of a Git repository and any change
 
 1. Private key for issuing `git` commands and a corresponding public key authorised by the target Git server.
 1. Existing Git remote, for which the user has push permissions.
+1. Stroom property `stroom.export.enabled` set to `true`.
 1. Stroom user account with the following minimum access attributes:
    1. `Export Configuration` cluster permission.
    1. `Read` access to the top-level `System` node, or at least one sub-item.
