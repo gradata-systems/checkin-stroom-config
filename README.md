@@ -11,7 +11,7 @@ The configuration is compared to the contents of a Git repository and any change
 1. Stroom user account with the following minimum access attributes:
    1. `Export Configuration` cluster permission.
    1. `Read` access to the top-level `System` node, or at least one sub-item.
-1. Valid Stroom API key.
+1. OAuth2 client and secret access key (for client credentials flow).
 
 # Usage
 
