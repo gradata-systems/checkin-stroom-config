@@ -1,4 +1,4 @@
-FROM alpine:3.17.1
+FROM alpine:3.19.0
 
 RUN apk update && \
     apk upgrade && \
@@ -6,7 +6,8 @@ RUN apk update && \
         bash \
         openssh-client \
         curl \
-        git
+        git \
+        jq
 
 RUN adduser --uid 1000 --disabled-password stroom
 

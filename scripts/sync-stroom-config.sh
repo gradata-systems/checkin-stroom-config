@@ -2,7 +2,9 @@
 # Downloads Stroom configuration via the API and checks in changes to a Git repository.
 
 stroom_url="${STROOM_URL:-}"
-stroom_api_key_file="${STROOM_API_KEY_FILE:-}"
+auth_token_url="${STROOM_AUTH_TOKEN_URL:-}"
+auth_client_id="${STROOM_AUTH_CLIENT_ID:-}"
+auth_client_secret_file="${STROOM_AUTH_CLIENT_SECRET_FILE:-}"
 repo_dir="${STROOM_REPO_DIR:-./repo}"
 git_user="${STROOM_GIT_USER:-}"
 git_email="${STROOM_GIT_EMAIL:-}"
@@ -10,9 +12,11 @@ git_url="${STROOM_GIT_URL:-}"
 git_branch="${STROOM_GIT_BRANCH:-master}"
 ssh_key_file="${STROOM_SSH_KEY_FILE:-}"
 
-usage() {
-  echo "Usage: sync-stroom-config   --stroom-url https://stroom.example.com
-                               --stroom-api-key-file ~/api_key
+function usage() {
+  echo "Usage: sync-stroom-config --stroom-url https://stroom.example.com
+                               --auth-token-url https://auth.example.com/realms/stroom/protocol/openid-connect/token
+                               --auth-client-id stroom
+                               --auth-client-secret-file ~/auth-client-secret
                                --git-user 'Git User'
                                --git-email 'git-user@github.com'
                                --git-url git@github.com:test-user/stroom-config.git
@@ -22,7 +26,7 @@ usage() {
 }
 
 short_opts='s:a:r:u:e:g:b:k:'
-long_opts='stroom-url:,stroom-api-key-file:,repo-dir:,git-user:,git-email:,git-url:,git-branch:,ssh-key-file:'
+long_opts='stroom-url:,auth-token-url:,auth-client-id:,auth-client-secret-file:,repo-dir:,git-user:,git-email:,git-url:,git-branch:,ssh-key-file:'
 parsed_arguments=$(getopt -a -n sync-stroom-config -o "$short_opts" --long "$long_opts" -- "$@")
 eval set -- "$parsed_arguments"
 while :
@@ -32,8 +36,16 @@ do
       stroom_url="$2"
       shift 2
       ;;
-    -a | --stroom-api-key-file)
-      stroom_api_key_file="$2"
+    --auth-token-url)
+      auth_token_url="$2"
+      shift 2
+      ;;
+    --auth-client-id)
+      auth_client_id="$2"
+      shift 2
+      ;;
+    --auth-client-secret-file)
+      auth_client_secret_file="$2"
       shift 2
       ;;
     -r | --repo-dir)
@@ -70,8 +82,14 @@ done
 if [ -z "$stroom_url" ]; then
   echo 'Stroom URL not specified (--stroom-url)'
   usage
-elif [ ! -f "$stroom_api_key_file" ]; then
-  echo 'API key file does not exist (--stroom-api-key-file)'
+elif [ -z "$auth_token_url" ]; then
+  echo 'OAuth2 token URL not specified (--auth-token-url)'
+  usage
+elif [ -z "$auth_client_id" ]; then
+  echo 'OAuth2 client ID not specified (--auth-client-id)'
+  usage
+elif [ ! -f "$auth_client_secret_file" ]; then
+  echo 'OAuth2 client secret file does not exist (--auth-client-secret-file)'
   usage
 elif [ -z "$repo_dir" ]; then
   echo 'Repo directory path not specified (--repo-dir)'
@@ -95,7 +113,9 @@ fi
 
 echo "Options:"
 echo " * Stroom URL: $stroom_url"
-echo " * Stroom API key file: $stroom_api_key_file"
+echo " * OAuth2 token URL: $auth_token_url"
+echo " * OAuth2 client ID: $auth_client_id"
+echo " * OAuth2 client secret file: $auth_client_secret_file"
 echo " * Repo directory: $repo_dir"
 echo " * Git username: $git_user"
 echo " * Git email: $git_email"
@@ -118,9 +138,6 @@ git_server_hostname=$(echo "$git_url" | sed -E 's/^git@(.+):.+$/\1/g')
 mkdir -p ~/.ssh
 ssh-keyscan "$git_server_hostname" >> ~/.ssh/known_hosts
 
-# Store the StroomAPI key
-api_key=$(cat "$stroom_api_key_file")
-
 cd "$repo_dir" || exit
 
 # Pull the git repo
@@ -142,6 +159,29 @@ else
   fi
 fi
 
+# Obtain an access token from the OAuth2 provider
+access_token_file='/tmp/access-token'
+status_code=$(curl -k -X POST \
+  --silent \
+  --output "$access_token_file" \
+  --write-out %\{http_code\} \
+  -H 'Content-Type: application/x-www-form-urlencoded' \
+  -d 'grant_type=client_credentials' \
+  -d "client_id=$auth_client_id" \
+  -d "client_secret=$(cat "$auth_client_secret_file")" \
+  "$auth_token_url")
+
+if [ "$status_code" -ne 200 ]; then
+  echo "Failed to obtain access token. HTTP status code: $status_code"
+  exit 1
+fi
+
+access_token=$(jq -r '.access_token' "$access_token_file")
+if [ "$access_token" = "null" ]; then
+  echo "Invalid access token"
+  exit 1
+fi
+
 # Dump Stroom config
 echo "Downloading Stroom config..."
 download_url="$stroom_url/api/export/v1"
@@ -150,7 +190,7 @@ status_code=$(curl -k -X GET \
   --silent \
   --output "$out_file" \
   --write-out %\{http_code\} \
-  -H "Authorization:Bearer $api_key" \
+  -H "Authorization:Bearer $access_token" \
   "$download_url")
 
 if [ "$status_code" -ne 200 ]; then
@@ -160,6 +200,9 @@ fi
 
 echo "Unzipping $out_file..."
 unzip -o -q "$out_file" -d .
+
+# Clean up temporary files
+rm -f "$access_token_file"
 rm -f "$out_file"
 
 # Commit new files, changes and deletions

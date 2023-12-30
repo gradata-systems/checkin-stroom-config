@@ -18,7 +18,11 @@ spec:
               env:
                 - name: STROOM_URL
                   value: https://stroom.example.com
-                - name: STROOM_API_KEY_FILE
+                - name: STROOM_AUTH_TOKEN_URL
+                  value: https://auth.example.com/realms/stroom/protocol/openid-connect/token
+                - name: STROOM_AUTH_CLIENT_ID
+                  value: stroom-config-sync
+                - name: STROOM_AUTH_CLIENT_SECRET_FILE
                   value: /stroom/secrets/api-key
                 - name: STROOM_REPO_DIR
                   value: /stroom/repo
